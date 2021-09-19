@@ -1,6 +1,7 @@
 package orlando_test
 
 import (
+	"fmt"
 	"hash/fnv"
 	"testing"
 
@@ -50,5 +51,34 @@ func TestFilterContains(t *testing.T) {
 	}
 	if filter.Contains("test2") {
 		t.Errorf("Expected filter to not contain 'test2'")
+	}
+}
+
+func BenchmarkFilterInsertContains10(b *testing.B) {
+	benchmarkFilterInsertContains(10)
+}
+
+func BenchmarkFilterInsertContains100(b *testing.B) {
+	benchmarkFilterInsertContains(100)
+}
+
+func BenchmarkFilterInsertContains1000(b *testing.B) {
+	benchmarkFilterInsertContains(100_0)
+}
+
+func BenchmarkFilterInsertContains10000(b *testing.B) {
+	benchmarkFilterInsertContains(10_000)
+}
+
+func benchmarkFilterInsertContains(i int) {
+	hasher := fnv.New32a()
+	filter, _ := orlando.NewFilter(100, func(s string) uint32 {
+		defer hasher.Reset()
+		hasher.Write([]byte(s))
+		return hasher.Sum32()
+	})
+	for j := 0; j < i; j++ {
+		filter.Insert(fmt.Sprintf("%d", j))
+		filter.Contains(fmt.Sprintf("%d", j))
 	}
 }
